@@ -14,6 +14,11 @@ class Course(CommonModel):
     max_capacity = models.PositiveSmallIntegerField(
         default=20,
     )
+    members = models.ManyToManyField(
+        'student.Student',
+        through='course.Subscription',
+        blank=True,
+    )
 
     def __str__(self):
         return f'{self.id}: {self.name}'
@@ -62,5 +67,44 @@ class QuizOption(CommonModel):
         db_table = 'quiz_option'
 
 
-# TODO: Create QuizAnswer and QuizOptionAnswer models.
-# With a student relationship.
+class Subscription(TimeStampedModel):
+    student = models.ForeignKey(
+        'student.Student',
+        on_delete=models.CASCADE,
+        related_name='subscriptions',
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='subscriptions',
+    )
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return (
+            f'{self.id}: {self.student.first_name} '
+            f'subscribed to {self.course.name}'
+        )
+
+    class Meta:
+        db_table = 'subscription'
+
+
+class QuizAnswer(TimeStampedModel):
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.CASCADE,
+        related_name='quiz_answers',
+    )
+    answer = models.ForeignKey(
+        QuizOption,
+        on_delete=models.CASCADE,
+        related_name='quiz_answers',
+    )
+    succeeded = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'quiz_answer'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)

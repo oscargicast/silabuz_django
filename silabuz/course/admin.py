@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Quiz, QuizOption
+from .models import Course, Quiz, QuizOption, Subscription, QuizAnswer
 
 
 @admin.register(Course)
@@ -70,4 +70,33 @@ class QuizOptionAdmin(admin.ModelAdmin):
         'quiz__course__name',
         'quiz__name',
         'name',
+    )
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'student',
+        'course',
+        'is_active',
+        'modified',
+        'created',
+    )
+    search_fields = (
+        'course__name',
+        'student__first_name',
+        'student__last_name',
+    )
+
+
+@admin.register(QuizAnswer)
+class QuizAnswerAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'subscription',
+        'answer',
+        'succeeded',
+        'modified',
+        'created',
     )
