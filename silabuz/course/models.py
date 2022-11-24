@@ -90,6 +90,8 @@ class Subscription(TimeStampedModel):
         db_table = 'subscription'
 
 
+# TODO: This models only support one answer.
+# Change it in order to support multiple answers.
 class QuizAnswer(TimeStampedModel):
     subscription = models.ForeignKey(
         Subscription,
@@ -107,4 +109,5 @@ class QuizAnswer(TimeStampedModel):
         db_table = 'quiz_answer'
 
     def save(self, *args, **kwargs):
+        # TODO: Compute succeeded.
         super().save(*args, **kwargs)
