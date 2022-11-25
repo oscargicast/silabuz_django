@@ -26,6 +26,10 @@ class Course(CommonModel):
     class Meta:
         db_table = 'course'
 
+    @property
+    def stock(self):
+        return self.members.count()
+
 
 class Quiz(CommonModel):
     course = models.ForeignKey(
@@ -88,18 +92,17 @@ class Subscription(TimeStampedModel):
 
     class Meta:
         db_table = 'subscription'
+        unique_together = ('student', 'course')
 
 
-# TODO: This models only support one answer.
-# Change it in order to support multiple answers.
 class QuizAnswer(TimeStampedModel):
     subscription = models.ForeignKey(
         Subscription,
         on_delete=models.CASCADE,
         related_name='quiz_answers',
     )
-    answer = models.ForeignKey(
-        QuizOption,
+    quiz = models.ForeignKey(
+        Quiz,
         on_delete=models.CASCADE,
         related_name='quiz_answers',
     )
@@ -107,7 +110,38 @@ class QuizAnswer(TimeStampedModel):
 
     class Meta:
         db_table = 'quiz_answer'
+        unique_together = ('subscription', 'quiz')
+
+    def check_option_answers(self) -> bool:
+        quiz_options = self.quiz.options.filter(
+            is_a_right_answer=True
+        ).values_list('id', flat=True)
+        option_answers = QuizOptionAnswer.objects.filter(
+            quiz_answer=self,
+        ).values_list('quiz_option', flat=True)
+        return (set(quiz_options) - set(option_answers)) == set()
 
     def save(self, *args, **kwargs):
-        # TODO: Compute succeeded.
+        is_new = self.pk is None
+        if is_new:
+            self.succeeded = self.check_option_answers()
+        # Pre save.
         super().save(*args, **kwargs)
+        # Post save.
+
+
+class QuizOptionAnswer(TimeStampedModel):
+    quiz_answer = models.ForeignKey(
+        QuizAnswer,
+        on_delete=models.CASCADE,
+        related_name='quiz_option_answers',
+    )
+    quiz_option = models.ForeignKey(
+        QuizOption,
+        on_delete=models.CASCADE,
+        related_name='quiz_option_answer',
+    )
+
+    class Meta:
+        db_table = 'quiz_option_answer'
+        unique_together = ('quiz_answer', 'quiz_option')

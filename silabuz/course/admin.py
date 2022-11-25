@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Course, Quiz, QuizOption, Subscription, QuizAnswer
+from .models import (
+    Course,
+    Quiz,
+    QuizAnswer,
+    QuizOption,
+    QuizOptionAnswer,
+    Subscription,
+)
 
 
 @admin.register(Course)
@@ -88,15 +95,40 @@ class SubscriptionAdmin(admin.ModelAdmin):
         'student__first_name',
         'student__last_name',
     )
+    raw_id_fields = (
+        'student',
+    )
+
+
+class QuizOptionAnswerInline(admin.TabularInline):
+    model = QuizOptionAnswer
+    extra = 0
 
 
 @admin.register(QuizAnswer)
 class QuizAnswerAdmin(admin.ModelAdmin):
+    inlines = (
+        QuizOptionAnswerInline,
+    )
     list_display = (
         'id',
         'subscription',
-        'answer',
+        'quiz',
         'succeeded',
+        'modified',
+        'created',
+    )
+    readonly_fields = (
+        'succeeded',
+    )
+
+
+@admin.register(QuizOptionAnswer)
+class QuizOptionAnswerAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'quiz_answer',
+        'quiz_option',
         'modified',
         'created',
     )

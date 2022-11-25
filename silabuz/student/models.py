@@ -16,4 +16,4 @@ class Student(AbstractUser):
     class Meta:
         db_table = 'student'
         verbose_name = 'student'
-        verbose_name_plural = 'student'
+        verbose_name_plural = 'students'
